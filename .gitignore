@@ -127,3 +127,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+data/NAD_r11.txt
+data/nad.csv.xz
