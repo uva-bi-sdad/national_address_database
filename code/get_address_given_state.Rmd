@@ -1,0 +1,74 @@
+---
+title: "get block address given state"
+output: ''
+date: "2023-02-28"
+---
+
+```{r}
+library(tidyverse)
+library(tidycensus)
+library(tigris)
+library(tidygeocoder)
+library(dplyr)
+library(sf)
+library(mapview)
+
+# https://cran.r-project.org/web/packages/tidygeocoder/readme/README.html
+```
+
+
+```{r}
+
+missing_states <- c("NE", "OR", "GA", "AL", "HI", "NV", "ID", "NH", "MS")
+
+ms <- get_acs(geography = "county",
+                 year = 2019,
+                 variables = c(median_household_income = "B19013_001"),
+                 survey = "acs5",
+                 output = "wide",
+                 state = missing_states,
+                 geometry = T) 
+
+ms
+summary(ms)
+```
+
+
+```{r}
+ms_blocks <- blocks(
+  state = "NE",
+  year = 2020
+)
+
+# should have 193,352 census blocks
+
+summary(ms_blocks)
+head(ms_blocks)
+```
+
+
+# Get lon lat based on the geometric centroid of the block
+```{r}
+ms_blocks['centroid'] <- ms_blocks['geometry'] %>% st_centroid() 
+lonlat <- ms_blocks %>% mutate(long = unlist(map(ms_blocks$centroid,1)),
+           lat = unlist(map(ms_blocks$centroid,2)))
+lonlat
+```
+
+# Iterate through each county and export state_county
+```{r}
+size_sum(unique(lonlat$BLOCKCE20))
+
+for(block in sort(unique(lonlat$BLOCKCE20))){
+  df<- filter(lonlat, BLOCKCE20 == block)
+  print(nrow(df))
+}
+```
+
+
+# Reverse geocode and get an address
+```{r}
+reverse <-  lonlat %>% reverse_geocode(lat = lat, long = long, method = 'osm',
+                  address = address_found, full_results = FALSE)
+```
+
