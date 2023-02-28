@@ -5,7 +5,7 @@ I extracted into a csv format, addresses from the [National Address Database](ht
 ## Example Usage
 
 1. Download a [json list of state_counties](https://raw.githubusercontent.com/uva-bi-sdad/national_address_database/main/data/state_county.json) and reference to their names
-2. Query `https://github.com/uva-bi-sdad/national_address_database/raw/main/data/<insert file name here>` the name
+2. Query the file name via `https://github.com/uva-bi-sdad/national_address_database/raw/main/data/<insert file name here>`
 
 In Python
 ```python
@@ -40,6 +40,6 @@ Index(['state', 'county', 'zip', 'add_number', 'street_name', 'longitude',
 ```
 
 ## Potentially useful for next steps?
-- Might need to reference the [census geocoder](https://geocoding.geo.census.gov/geocoder/geographies/) and evaluate the block id so that you can consolidate different approaches
+- Might need to reference the [census geocoder](https://geocoding.geo.census.gov/geocoder/geographies/address?form) and evaluate the block id so that you can consolidate different approaches
 - [Schema for the national address database](https://www.transportation.gov/sites/dot.gov/files/docs/mission/gis/national-address-database/308816/nad-schema-v1.pdf)
 - [API to reverse long lat into area information](https://geo.fcc.gov/api/census/#!/area/get_area)
