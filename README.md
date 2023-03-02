@@ -39,6 +39,34 @@ Index(['state', 'county', 'zip', 'add_number', 'street_name', 'longitude',
       dtype='object')
 ```
 
+## Verification
+To verify that the appended addresses are accurate, we can cross check it against the census geocoder and see if there are components in the 'matchedAddress' key
+
+```python
+import requests
+
+formal_address = '210 N Barton St, Arlington, VA 22201'
+r = requests.get('https://geocoding.geo.census.gov/geocoder/locations/onelineaddress?address=%s&benchmark=2020&format=json' % formal_address).json()
+print(len(r.json()['result']['addressMatches']) > 0)
+print(r)  
+```
+
+```python
+{'result': {'input': {'address': {'address': '210 N Barton St, Arlington, VA 22201'
+            }, 'benchmark': {'isDefault': False, 'benchmarkDescription': 'Public Address Ranges - Census 2020 Benchmark', 'id': '2020', 'benchmarkName': 'Public_AR_Census2020'
+            }
+        }, 'addressMatches': [
+            {'tigerLine': {'side': 'L', 'tigerLineId': '76479213'
+                }, 'coordinates': {'x': -77.08608052539722, 'y': 38.87763620769999
+                }, 'addressComponents': {'zip': '22201', 'streetName': 'BARTON', 'preType': '', 'city': 'ARLINGTON', 'preDirection': 'N', 'suffixDirection': '', 'fromAddress': '200', 'state': 'VA', 'suffixType': 'ST', 'toAddress': '228', 'suffixQualifier': '', 'preQualifier': ''
+                }, 'matchedAddress': '210 N BARTON ST, ARLINGTON, VA,
+                22201'
+            }
+        ]
+    }
+}
+```
+
 ## Potentially useful for next steps?
 - Might need to reference the [census geocoder](https://geocoding.geo.census.gov/geocoder/geographies/address?form) and evaluate the block id so that you can consolidate different approaches
 - [Schema for the national address database](https://www.transportation.gov/sites/dot.gov/files/docs/mission/gis/national-address-database/308816/nad-schema-v1.pdf)
