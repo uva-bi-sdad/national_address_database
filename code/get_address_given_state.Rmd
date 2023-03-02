@@ -61,7 +61,7 @@ size_sum(unique(lonlat$BLOCKCE20))
 
 for(block in sort(unique(lonlat$BLOCKCE20))){
   df<- filter(lonlat, BLOCKCE20 == block)
-  print(nrow(df))
+  # print(nrow(df))
 }
 ```
 
