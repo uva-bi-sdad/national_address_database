@@ -11,7 +11,7 @@ In Python
 ```python
 import pandas as pd
 
-df = pd.read_csv("https://github.com/uva-bi-sdad/national_address_database/raw/main/data/VA_Arlington.csv.xz")
+df = pd.read_csv("https://github.com/uva-bi-sdad/national_address_database/raw/main/data/va_arlington.csv.xz")
 ```
 Results: 
 ```python
