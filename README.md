@@ -15,20 +15,20 @@ df = pd.read_csv("https://github.com/uva-bi-sdad/national_address_database/raw/m
 ```
 Results: 
 ```python
-      state     county      zip  ...  longitude   latitude                  address
-0        VA  Arlington  22201.0  ... -77.089851  38.873820       1 Fenwick VA 22201
-1        VA  Arlington  22203.0  ... -77.101126  38.871177         1 Glebe VA 22203
-2        VA  Arlington  22203.0  ... -77.122787  38.866952       1 Granada VA 22203
-3        VA  Arlington  22203.0  ... -77.132594  38.866696       1 Madison VA 22203
-4        VA  Arlington  22203.0  ... -77.133909  38.866673    1 Manchester VA 22203
-...     ...        ...      ...  ...        ...        ...                      ...
-43681    VA  Arlington  22204.0  ... -77.086141  38.850972    2021 Kenmore VA 22204
-43682    VA  Arlington  22205.0  ... -77.129933  38.870417        5741 4Th VA 22205
-43683    VA  Arlington  22205.0  ... -77.130048  38.870387        5743 4Th VA 22205
-43684    VA  Arlington  22209.0  ... -77.072629  38.895806  1818 Fort Myer VA 22209
-43685    VA  Arlington  22207.0  ... -77.115376  38.912716       4110 31St VA 22207
+      state     county    zip  longitude   latitude                                       address
+0        va  arlington  22201 -77.089851  38.873820     1 north fenwick street,arlington,va,22201
+1        va  arlington  22203 -77.101126  38.871177         1 north glebe road,arlington,va,22203
+2        va  arlington  22203 -77.122787  38.866952     1 north granada street,arlington,va,22203
+3        va  arlington  22203 -77.132594  38.866696     1 north madison street,arlington,va,22203
+4        va  arlington  22203 -77.133909  38.866673  1 north manchester street,arlington,va,22203
+...     ...        ...    ...        ...        ...                                           ...
+43681    va  arlington  22204 -77.086141  38.850972  2021 south kenmore street,arlington,va,22204
+43682    va  arlington  22205 -77.129933  38.870417      5741 4th street north,arlington,va,22205
+43683    va  arlington  22205 -77.130048  38.870387      5743 4th street north,arlington,va,22205
+43684    va  arlington  22209 -77.072629  38.895806       1818 fort myer drive,arlington,va,22209
+43685    va  arlington  22207 -77.115376  38.912716     4110 31st street north,arlington,va,22207
 
-[43686 rows x 8 columns]
+[43686 rows x 6 columns]
 ```
 
 Columns:
