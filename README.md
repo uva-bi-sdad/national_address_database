@@ -31,14 +31,6 @@ Results:
 [43686 rows x 6 columns]
 ```
 
-Columns:
-```python
-df.columns
-Index(['state', 'county', 'zip', 'add_number', 'street_name', 'longitude',
-       'latitude', 'address'],
-      dtype='object')
-```
-
 ## Verification
 To verify that the appended addresses are accurate, we can cross check it against the census geocoder and see if there are components in the 'matchedAddress' key
 
@@ -67,7 +59,7 @@ print(r)
 }
 ```
 
-## Potentially useful for next steps?
+## Reference and next steps
 - Might need to reference the [census geocoder](https://geocoding.geo.census.gov/geocoder/geographies/address?form) and evaluate the block id so that you can consolidate different approaches
 - [Schema for the national address database](https://www.transportation.gov/sites/dot.gov/files/docs/mission/gis/national-address-database/308816/nad-schema-v1.pdf)
 - [API to reverse long lat into area information](https://geo.fcc.gov/api/census/#!/area/get_area)
