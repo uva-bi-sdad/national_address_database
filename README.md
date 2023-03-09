@@ -30,6 +30,7 @@ Results:
 
 [43686 rows x 6 columns]
 ```
+3. If necessary, you can also use [state fips](https://raw.githubusercontent.com/uva-bi-sdad/national_address_database/main/data/fips_state.csv) and [county fips](https://raw.githubusercontent.com/uva-bi-sdad/national_address_database/main/data/fips_county.csv.xz) prepared in this repo
 
 ## Verification
 To verify that the appended addresses are accurate, we can cross check it against the census geocoder and see if there are components in the 'matchedAddress' key
