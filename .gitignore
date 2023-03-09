@@ -130,3 +130,5 @@ dmypy.json
 
 data/NAD_r11.txt
 data/nad.csv.xz
+
+**/tl_2020_*
