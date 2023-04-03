@@ -60,6 +60,9 @@ print(r)
 }
 ```
 
+## Missing States:
+![NAD missing states](https://www.transportation.gov/sites/dot.gov/files/images/NAD_Status_20221201_v12_Release.jpg)
+
 ## Reference and next steps
 - Might need to reference the [census geocoder](https://geocoding.geo.census.gov/geocoder/geographies/address?form) and evaluate the block id so that you can consolidate different approaches
 - [Schema for the national address database](https://www.transportation.gov/sites/dot.gov/files/docs/mission/gis/national-address-database/308816/nad-schema-v1.pdf)
