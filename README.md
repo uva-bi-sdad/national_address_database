@@ -1,6 +1,8 @@
 # national_address_database
 
-I extracted into a csv format, addresses from the [National Address Database](https://www.transportation.gov/mission/open/gis/national-address-database/national-address-database-nad-disclaimer)
+![](https://geps.dev/progress/0) of total counties covered (placeholder)
+
+We extracted addresses from the [National Address Database](https://www.transportation.gov/mission/open/gis/national-address-database/national-address-database-nad-disclaimer), and looked to cover additional states using other datasets
 
 ## Example Usage
 
