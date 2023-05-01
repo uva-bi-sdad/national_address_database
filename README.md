@@ -51,8 +51,6 @@ washington: ![](https://geps.dev/progress/17)
 west_virginia: ![](https://geps.dev/progress/0)
 wisconsin: ![](https://geps.dev/progress/89)
 wyoming: ![](https://geps.dev/progress/37)
-alabama: ![](https://geps.dev/progress/85)
-
 
 We extracted addresses from the [National Address Database](https://www.transportation.gov/mission/open/gis/national-address-database/national-address-database-nad-disclaimer), and looked to cover additional states using other datasets
 
