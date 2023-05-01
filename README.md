@@ -54,8 +54,6 @@ wyoming: ![](https://geps.dev/progress/37)
 alabama: ![](https://geps.dev/progress/85)
 
 
-We extracted addresses from the [National Address Database](https://www.transportation.gov/mission/open/gis/national-address-database/national-address-database-nad-disclaimer), and looked to cover additional states using other datasets
-
 ## Example Usage
 
 1. Download a [json list of state_counties](https://raw.githubusercontent.com/uva-bi-sdad/national_address_database/main/data/state_county.json) and reference to their names
