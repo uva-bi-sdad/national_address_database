@@ -1,6 +1,6 @@
 # national_address_database
 
-alabama: ![](https://geps.dev/progress/0)
+alabama: ![](https://geps.dev/progress/85)
 alaska: ![](https://geps.dev/progress/6)
 arizona: ![](https://geps.dev/progress/93)
 arkansas: ![](https://geps.dev/progress/100)
