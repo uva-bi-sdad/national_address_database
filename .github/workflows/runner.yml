@@ -14,11 +14,6 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@master
       - run: echo "💡 The ${{ github.repository }} repository have been cloned to the runner."
-      - name: Check out auditor repository code
-        uses: actions/checkout@master
-        with:
-          repository: uva-bi-sdad/national_address_database
-          path: national_address_database/
       - run: echo "🌝 The repo is now cloned on the runner"
       - run: echo "🖥️ The workflow is now ready to test your code on the runner."
       - name: List files in the repository (Useful for debugging)
@@ -30,7 +25,7 @@ jobs:
           python-version: 3.10.6 #install the python needed
       - name: Install requirements
         run: |
-          pip install -r national_address_database/code/requirements.txt 
+          pip install -r requirements.txt 
       - name: Track coverage of counties per state, and overwrite to readme
         run: |
           python code/coverage.py -i data/fips_county.csv -d data/state_county -r README.md
