@@ -29,6 +29,9 @@ jobs:
       - name: Track coverage of counties per state, and overwrite to readme
         run: |
           python code/coverage.py -i data/fips_county.csv -d data/state_county -r README.md
+      - name: Auto update listed county files in a json
+        run: |
+          tree -J data/state_county > data/state_county.json
       - name: Commit the results
         run: |
           git config --local user.email "actions@github.com"
