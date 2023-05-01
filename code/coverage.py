@@ -9,15 +9,16 @@ def calculate_coverage(input_filepath, data_dir):
     cdf = pd.read_csv(input_filepath)
 
     existing_counties = [
-        v[:-7] for v in os.listdir(data_dir)
+        v[:-7].replace("_county", "") for v in os.listdir(data_dir)
     ]  # assuming .csv.xz, which is 7 characters
 
     results = {}
 
-    for state in tqdm(cdf["state"]):
+    for state in cdf["state"]:
         sdf = cdf[cdf["state"] == state].copy()
         sdf["name"] = sdf["abbr"] + "_" + sdf["county"]
         sdf["name"] = sdf["name"].apply(lambda x: x.replace("_county", ""))
+
         coverage = sdf[sdf["name"].isin(existing_counties)].copy()
         results[state] = int(len(coverage) / len(sdf) * 100)
 
@@ -32,6 +33,8 @@ def update_readme(readme_filepath, results):
     insert = ""
     for key in tqdm(keys):
         insert += "%s: ![](https://geps.dev/progress/%s)\n" % (key, results[key])
+
+    del contents[3:53]
 
     contents.insert(2, insert)
 
