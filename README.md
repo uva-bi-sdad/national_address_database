@@ -52,6 +52,11 @@ west_virginia: ![](https://geps.dev/progress/0)
 wisconsin: ![](https://geps.dev/progress/89)
 wyoming: ![](https://geps.dev/progress/37)
 
+
+## Data Sources
+- We extracted data from the [Natiaonl Address Database](https://www.transportation.gov/gis/national-address-database)
+- We work on filling the gaps for missing information using other data sources
+
 ## Example Usage
 
 1. Download a [json list of state_counties](https://raw.githubusercontent.com/uva-bi-sdad/national_address_database/main/data/state_county.json) and reference to their names
@@ -109,11 +114,3 @@ print(r)
     }
 }
 ```
-
-## Missing States:
-![NAD missing states](https://www.transportation.gov/sites/dot.gov/files/images/NAD_Status_20221201_v12_Release.jpg)
-
-## Reference and next steps
-- Might need to reference the [census geocoder](https://geocoding.geo.census.gov/geocoder/geographies/address?form) and evaluate the block id so that you can consolidate different approaches
-- [Schema for the national address database](https://www.transportation.gov/sites/dot.gov/files/docs/mission/gis/national-address-database/308816/nad-schema-v1.pdf)
-- [API to reverse long lat into area information](https://geo.fcc.gov/api/census/#!/area/get_area)
