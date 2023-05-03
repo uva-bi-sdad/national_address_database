@@ -51,8 +51,6 @@ washington: ![](https://geps.dev/progress/17)
 west_virginia: ![](https://geps.dev/progress/0)
 wisconsin: ![](https://geps.dev/progress/89)
 wyoming: ![](https://geps.dev/progress/37)
-
-
 ## Data Sources
 - We extracted data from the [Natiaonl Address Database](https://www.transportation.gov/gis/national-address-database)
 - We work on filling the gaps for missing information using other data sources
