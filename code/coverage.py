@@ -34,7 +34,7 @@ def update_readme(readme_filepath, results):
     for key in tqdm(keys):
         insert += "%s: ![](https://geps.dev/progress/%s)\n" % (key, results[key])
 
-    del contents[2:55]
+    del contents[2 : len(keys) + 2]
 
     contents.insert(2, insert)
 
