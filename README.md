@@ -51,8 +51,6 @@ washington: ![](https://geps.dev/progress/17)
 west_virginia: ![](https://geps.dev/progress/0)
 wisconsin: ![](https://geps.dev/progress/89)
 wyoming: ![](https://geps.dev/progress/37)
-- We work on filling the gaps for missing information using other data sources
-
 ## Example Usage
 
 1. Download a [json list of state_counties](https://raw.githubusercontent.com/uva-bi-sdad/national_address_database/main/data/state_county.json) and reference to their names
