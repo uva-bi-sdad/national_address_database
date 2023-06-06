@@ -4,6 +4,10 @@ from bs4 import BeautifulSoup
 from tqdm import tqdm
 import requests
 
+"""
+Download all county blocks
+"""
+
 # wget -P ../data/shapefiles/ https://www2.census.gov/geo/tiger/TIGER2020PL/LAYER/TABBLOCK/2020/tl_2020_13121_tabblock20.zip
 
 
@@ -21,9 +25,10 @@ def main():
 
     for county in tqdm(counties):
         os.system(
-            "wget -P ../data/shapefiles/https://www2.census.gov/geo/tiger/TIGER2020PL/LAYER/TABBLOCK/2020/%s"
+            "wget -P ../data/shapefiles/ https://www2.census.gov/geo/tiger/TIGER2020PL/LAYER/TABBLOCK/2020/%s"
             % county
         )
+        assert os.path.isfile(os.path.join("../data/shapefiles", county))
 
 
 if __name__ == "__main__":
