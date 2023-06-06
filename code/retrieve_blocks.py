@@ -31,5 +31,5 @@ if __name__ == "__main__":
     df = main()
     print(df)
     assert (
-        len(df) == 8180866
+        len(df) == 8174955  # excluding island areas
     )  # tally from census tallies (https://www.census.gov/geographies/reference-files/time-series/geo/tallies.html)
