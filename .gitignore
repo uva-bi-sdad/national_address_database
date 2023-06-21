@@ -134,3 +134,4 @@ data/nad.csv.xz
 # Ignore all shpae file downloads
 **/tl_2020_*
 **/shapefiles/*
+data/staging/*
