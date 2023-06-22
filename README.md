@@ -37,10 +37,7 @@ import requests
 
 test_address = df.iat[0,0] # '521 mossy oak ridge, prattville, al, 36066'
 r = requests.get('https://geocoding.geo.census.gov/geocoder/locations/onelineaddress?address=%s&benchmark=2020&format=json' % test_address).json()
-print(len(r.json()['result']['addressMatches']) > 0)
+print(len(r['result']['addressMatches']) > 0) # True
 print(r)  
-```
-
-```python
 {'result': {'input': {'address': {'address': '521 mossy oak ridge, prattville, al, 36066'}, 'benchmark': {'isDefault': False, 'benchmarkDescription': 'Public Address Ranges - Census 2020 Benchmark', 'id': '2020', 'benchmarkName': 'Public_AR_Census2020'}}, 'addressMatches': [{'tigerLine': {'side': 'L', 'tigerLineId': '2838521'}, 'coordinates': {'x': -86.42976028846772, 'y': 32.46827875597135}, 'addressComponents': {'zip': '36066', 'streetName': 'MOSSY OAK', 'preType': '', 'city': 'PRATTVILLE', 'preDirection': '', 'suffixDirection': '', 'fromAddress': '519', 'state': 'AL', 'suffixType': 'RIDGE', 'toAddress': '599', 'suffixQualifier': '', 'preQualifier': ''}, 'matchedAddress': '521 MOSSY OAK RIDGE, PRATTVILLE, AL, 36066'}]}}
 ```
