@@ -6,7 +6,6 @@ from tqdm import tqdm
 import argparse
 import pandas as pd
 import requests
-from tqdm import tqdm
 import math
 from io import StringIO
 import warnings
@@ -16,43 +15,47 @@ import shutil
 import geopandas as gpd
 from glob import glob
 
+# download shapefiles: wget -P ../data/shapefiles/ https://www2.census.gov/geo/tiger/TIGER2020PL/LAYER/TABBLOCK/2020/tl_2020_13121_tabblock20.zip
+
 
 def main(
     input_file,
-    input_state_shapefile,
+    input_county_fips,
     output_file,
-    county_fips,
-    num_samples_per_block,
 ):
     warnings.filterwarnings("ignore")
 
-    state_df = gpd.read_file(input_state_shapefile)
-    state_df["county_id"] = state_df["STATEFP20"] + state_df["COUNTYFP20"]
-    bdf = state_df[state_df["county_id"] == county_fips]
+    # Fix later
+    # os.system(
+    #     "wget -N ../data/shapefiles/ https://www2.census.gov/geo/tiger/TIGER2020PL/LAYER/TABBLOCK/2020/tl_2020_%s_tabblock20.zip"
+    #     % input_county_fips
+    # )
+    shapefile_path = "../data/shapefiles/tl_2020_%s_tabblock20.zip" % input_county_fips
+    assert os.path.isfile(shapefile_path)
 
-    assert len(bdf) > 0, "No data remains after county filter on (%s)" % county_fips
+    state_df = gpd.read_file(shapefile_path)
+    state_df["county_id"] = state_df["STATEFP20"] + state_df["COUNTYFP20"]
+
     lat_lon_df = pd.read_csv(input_file)
     cgdf = gpd.GeoDataFrame(
-        lat_lon_df, geometry=gpd.points_from_xy(lat_lon_df.lon, lat_lon_df.lat)
+        lat_lon_df,
+        geometry=gpd.points_from_xy(lat_lon_df.longitude, lat_lon_df.latitude),
     )
     # Spatial join the address with points and the jeffesron county blocks with polygons
 
-    joined_county_df = state_df.sjoin(cgdf, how="inner", predicate="intersects")
-    joined_county_df = joined_county_df[["street", "GEOID20", "lon", "lat", "geometry"]]
+    joined_county_df = state_df.sjoin(cgdf, how="left", predicate="intersects")
+    print(joined_county_df)
+    joined_county_df = joined_county_df[
+        ["address", "GEOID20", "longitude", "latitude", "geometry"]
+    ]
     joined_county_df = joined_county_df.rename(columns={"GEOID20": "geoid20"})
-    one_per_block = (
-        joined_county_df.groupby("geoid20")
-        .apply(lambda x: x.sample(num_samples_per_block))
-        .reset_index(drop=True)
-    )  # randomly get n per county
-    one_per_block = one_per_block.rename(columns={"street": "address"})
-    one_per_block.to_csv(output_file, index=False)
+    joined_county_df.to_csv(output_file, index=False)
     logging.info("[%s] File saved to: %s" % (os.path.isfile(output_file), output_file))
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Given a csv, create an ouput directory with batched fcc area geocoding queries. Assumes that the csv is already formatted to fcc area api standards. Note if the force flag is false, the process will continue where it left off as long as the ouput_dir is the same."
+        description="Given a csv and you are running in the code repository, download the shape file and attempt an outerjoin spatially and return the results"
     )
 
     parser.add_argument(
@@ -63,17 +66,10 @@ if __name__ == "__main__":
         required=True,
     )
     parser.add_argument(
-        "-s",
-        "--input_shapefile",
-        type=str,
-        help="The input shapefile with block geometries at the state level for the sptial join",
-        required=True,
-    )
-    parser.add_argument(
         "-c",
         "--input_county_fips",
         type=str,
-        help="The county fips to filter from the shapefiles",
+        help="The input county fips to do the spatial joining",
         required=True,
     )
     parser.add_argument(
@@ -97,13 +93,6 @@ if __name__ == "__main__":
         required=False,
         default=False,
     )
-    parser.add_argument(
-        "-n",
-        "--num_samples_per_block",
-        type=int,
-        help="The number of values to sample per block (defaults to 1)",
-        default=1,
-    )
 
     args = parser.parse_args()
     log_level = logging.INFO
@@ -116,19 +105,14 @@ if __name__ == "__main__":
 
     test_df = pd.read_csv(args.input_file)
 
-    assert "lat" in test_df.columns
-    assert "lon" in test_df.columns
-    assert (
-        args.num_samples_per_block > 0
-    ), "number of values to sample per block is not greater than 0"
+    assert "latitude" in test_df.columns
+    assert "longitude" in test_df.columns
 
     if not args.force:
         assert not os.path.isfile(args.output_file), "output file is invalid"
 
     main(
         args.input_file,
-        args.input_shapefile,
-        args.output_file,
         args.input_county_fips,
-        args.num_samples_per_block,
+        args.output_file,
     )
