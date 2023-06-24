@@ -135,3 +135,4 @@ data/nad.csv.xz
 **/tl_2020_*
 **/shapefiles/*
 data/staging/*
+data/us_blocks_address.geojson
