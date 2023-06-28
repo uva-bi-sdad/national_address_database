@@ -52,7 +52,9 @@ def reverse_geocoding(lat, lon):
         return None
 
 
-def fire_in_the_hole(file, county, geo_column_id="GEOID20", num_samples=3, save=False):
+def fire_in_the_hole(
+    file, county, pbar=None, geo_column_id="GEOID20", num_samples=1, save=False
+):
     df = pd.read_csv(file)
     # We are only interested in reverse-geocoding addresses that are empty
     empty_df = df[df["address"].isnull()]
@@ -71,7 +73,7 @@ def fire_in_the_hole(file, county, geo_column_id="GEOID20", num_samples=3, save=
     empty_df = df[df["address"].isnull()]
 
     dfs = []
-    for geoid in tqdm(empty_df[geo_column_id]):
+    for geoid in empty_df[geo_column_id]:
         pdf = empty_df[empty_df[geo_column_id] == geoid]
         pdf = pdf.loc[pdf.index.repeat(num_samples)]
         pdf = pdf.reset_index(drop=True)
@@ -81,12 +83,16 @@ def fire_in_the_hole(file, county, geo_column_id="GEOID20", num_samples=3, save=
         pdf["geometry"] = pts
         pdf["longitude"] = pdf["geometry"].apply(lambda x: x.x)
         pdf["latitude"] = pdf["geometry"].apply(lambda x: x.y)
-        pdf["address"] = np.vectorize(reverse_geocoding)(
-            pdf["latitude"], pdf["longitude"]
-        )
         # print(pdf)
         dfs.append(pdf)
     rgeo_df = pd.concat(dfs)
+    if pbar:
+        pbar.set_description(
+            "Running reverse geocoding for %s on %s elements" % (county, len(rgeo_df))
+        )
+    rgeo_df["address"] = np.vectorize(reverse_geocoding)(
+        rgeo_df["latitude"], rgeo_df["longitude"]
+    )
     final_df = pd.concat([df[~df["address"].isnull()], rgeo_df])
     final_df = final_df.sort_values(by=geo_column_id)  # sort by geoid
     final_df = final_df.drop_duplicates(
@@ -104,4 +110,4 @@ if __name__ == "__main__":
     for file in pbar:
         pbar.set_description("Processing: %s" % file.name)
         county = file.name.split(".")[0]
-        fire_in_the_hole(file, county, save=True)
+        fire_in_the_hole(file, county, pbar=pbar, save=True)
