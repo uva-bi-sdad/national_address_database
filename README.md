@@ -1,5 +1,5 @@
 ## Data Sources
-- We extracted data from the [Natiaonl Address Database](https://www.transportation.gov/gis/national-address-database)
+- We extracted data from the [National Address Database](https://www.transportation.gov/gis/national-address-database)
 - We work on filling the gaps for missing information using other data sources
 
 ## Example Usage
