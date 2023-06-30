@@ -73,7 +73,9 @@ def fire_in_the_hole(
     empty_df = df[df["address"].isnull()]
 
     dfs = []
-    for geoid in empty_df[geo_column_id]:
+    empty_bar = tqdm(empty_df[geo_column_id])
+    for geoid in empty_bar:
+        empty_bar.set_description("Extracting lat long for: %s" % geoid)
         pdf = empty_df[empty_df[geo_column_id] == geoid]
         pdf = pdf.loc[pdf.index.repeat(num_samples)]
         pdf = pdf.reset_index(drop=True)
@@ -90,9 +92,23 @@ def fire_in_the_hole(
         pbar.set_description(
             "Running reverse geocoding for %s on %s elements" % (county, len(rgeo_df))
         )
-    rgeo_df["address"] = np.vectorize(reverse_geocoding)(
-        rgeo_df["latitude"], rgeo_df["longitude"]
-    )
+
+    # Set a batch size limit of 2000
+    batch_size = 2000
+    addresses = []
+    batch_bar = tqdm(range(int(len(rgeo_df) / batch_size)))
+    for i in batch_bar:
+        batch_bar.set_description(
+            "Processing batch (%s/%s)" % (i, int(len(rgeo_df) / batch_size))
+        )
+        addresses.extend(
+            np.vectorize(reverse_geocoding)(
+                rgeo_df["latitude"][i : (i + 1) * batch_size],
+                rgeo_df["longitude"][i : (i + 1) * batch_size],
+            )
+        )
+
+    rgeo_df["address"] = addresses
     final_df = pd.concat([df[~df["address"].isnull()], rgeo_df])
     final_df = final_df.sort_values(by=geo_column_id)  # sort by geoid
     final_df = final_df.drop_duplicates(
