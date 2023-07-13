@@ -9,6 +9,7 @@ from geopy.geocoders import Nominatim
 from tqdm import tqdm
 import pathlib
 import sys
+from timeout import timeout
 
 """
 Iterate across each county, use reverse geocoding on 10 random location per census block and get an address
@@ -50,6 +51,21 @@ def reverse_geocoding(lat, lon):
         sys.exit()
     except:
         return None
+
+
+def switch_vpn():
+    print("Switching vpn")
+    pass
+
+
+@timeout(seconds=60 * 60)
+def timed_reverse_geocoding(address_list, df, i, batch_size):
+    address_list.extend(
+        np.vectorize(reverse_geocoding)(
+            df["latitude"][i : (i + 1) * batch_size],
+            df["longitude"][i : (i + 1) * batch_size],
+        )
+    )
 
 
 def fire_in_the_hole(
@@ -101,12 +117,15 @@ def fire_in_the_hole(
         batch_bar.set_description(
             "Processing batch (%s/%s)" % (i, int(len(rgeo_df) / batch_size))
         )
-        addresses.extend(
-            np.vectorize(reverse_geocoding)(
-                rgeo_df["latitude"][i : (i + 1) * batch_size],
-                rgeo_df["longitude"][i : (i + 1) * batch_size],
-            )
-        )
+        # addresses.extend(
+        #     np.vectorize(reverse_geocoding)(
+        #         rgeo_df["latitude"][i : (i + 1) * batch_size],
+        #         rgeo_df["longitude"][i : (i + 1) * batch_size],
+        #     )
+        # )
+
+        # Running something that checks timing before switching the vpn to a different address
+        switch_vpn(addresses, rgeo_df, i, batch_size)
 
     rgeo_df["address"] = addresses
     final_df = pd.concat([df[~df["address"].isnull()], rgeo_df])
