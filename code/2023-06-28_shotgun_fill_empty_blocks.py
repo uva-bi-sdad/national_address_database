@@ -9,7 +9,10 @@ from geopy.geocoders import Nominatim
 from tqdm import tqdm
 import pathlib
 import sys
-from timeout import timeout
+import math
+from stem import Signal
+from stem.control import Controller
+import time
 
 """
 Iterate across each county, use reverse geocoding on 10 random location per census block and get an address
@@ -53,19 +56,11 @@ def reverse_geocoding(lat, lon):
         return None
 
 
-def switch_vpn():
-    print("Switching vpn")
-    pass
-
-
-@timeout(seconds=60 * 60)
-def timed_reverse_geocoding(address_list, df, i, batch_size):
-    address_list.extend(
-        np.vectorize(reverse_geocoding)(
-            df["latitude"][i : (i + 1) * batch_size],
-            df["longitude"][i : (i + 1) * batch_size],
-        )
-    )
+# signal TOR for a new connection
+def renew_connection():
+    with Controller.from_port(port=9051) as controller:
+        controller.authenticate()
+        controller.signal(Signal.NEWNYM)
 
 
 def fire_in_the_hole(
@@ -77,6 +72,7 @@ def fire_in_the_hole(
 
     # Skip is there are no empty addresses
     if empty_df.empty:
+        pbar.set_description("[%s] contains no empty addresses, skipping ..." % county)
         return
 
     # Download the shapefiles
@@ -108,33 +104,42 @@ def fire_in_the_hole(
         pbar.set_description(
             "Running reverse geocoding for %s on %s elements" % (county, len(rgeo_df))
         )
-
+    rgeo_df = rgeo_df.head(11)
     # Set a batch size limit of 2000
-    batch_size = 2000
+    batch_size = 5
     addresses = []
-    batch_bar = tqdm(range(int(len(rgeo_df) / batch_size)))
+    batch_bar = tqdm(range(int(math.ceil(len(rgeo_df) / batch_size))))
     for i in batch_bar:
         batch_bar.set_description(
-            "Processing batch (%s/%s)" % (i, int(len(rgeo_df) / batch_size))
+            "Processing batch (%s/%s), size: %s"
+            % (
+                i + 1,
+                int(math.ceil(len(rgeo_df) / batch_size)),
+                len(rgeo_df["latitude"][i * batch_size : (i + 1) * batch_size]),
+            )
         )
-        # addresses.extend(
-        #     np.vectorize(reverse_geocoding)(
-        #         rgeo_df["latitude"][i : (i + 1) * batch_size],
-        #         rgeo_df["longitude"][i : (i + 1) * batch_size],
-        #     )
-        # )
 
-        # Running something that checks timing before switching the vpn to a different address
-        switch_vpn(addresses, rgeo_df, i, batch_size)
+        addresses.extend(
+            np.vectorize(reverse_geocoding)(
+                rgeo_df["latitude"][i * batch_size : (i + 1) * batch_size],
+                rgeo_df["longitude"][i * batch_size : (i + 1) * batch_size],
+            )
+        )
+
+        batch_bar.set_description("Changing ip address")
+        # renew_connection()
+    print("length of addresses: %s" % len(addresses))
+    print("length of data frame: %s" % len(rgeo_df))
 
     rgeo_df["address"] = addresses
-    final_df = pd.concat([df[~df["address"].isnull()], rgeo_df])
+    final_df = pd.concat([df, rgeo_df])
     final_df = final_df.sort_values(by=geo_column_id)  # sort by geoid
     final_df = final_df.drop_duplicates(
         subset=geo_column_id, keep="last"
     )  # Remove duplicates, because there could be repeated addresses
     if save:
         final_df.to_csv(file, index=False)
+    print(final_df)
     return final_df
 
 
@@ -145,4 +150,5 @@ if __name__ == "__main__":
     for file in pbar:
         pbar.set_description("Processing: %s" % file.name)
         county = file.name.split(".")[0]
-        fire_in_the_hole(file, county, pbar=pbar, save=True)
+        fire_in_the_hole(file, county, pbar=pbar, save=False)
+        # time.sleep(0.1)
