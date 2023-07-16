@@ -13,6 +13,7 @@ import math
 from stem import Signal
 from stem.control import Controller
 import time
+import os
 
 """
 Iterate across each county, use reverse geocoding on 10 random location per census block and get an address
@@ -66,7 +67,7 @@ def renew_connection():
 def fire_in_the_hole(
     file, county, pbar=None, geo_column_id="GEOID20", num_samples=1, save=False
 ):
-    df = pd.read_csv(file)
+    df = pd.read_csv(file, dtype={geo_column_id: object})
     # We are only interested in reverse-geocoding addresses that are empty
     empty_df = df[df["address"].isnull()]
 
@@ -104,9 +105,9 @@ def fire_in_the_hole(
         pbar.set_description(
             "Running reverse geocoding for %s on %s elements" % (county, len(rgeo_df))
         )
-    rgeo_df = rgeo_df.head(11)
+    # rgeo_df = rgeo_df.head(11)  # for quicker testing
     # Set a batch size limit of 2000
-    batch_size = 5
+    batch_size = 500
     addresses = []
     batch_bar = tqdm(range(int(math.ceil(len(rgeo_df) / batch_size))))
     for i in batch_bar:
@@ -138,7 +139,31 @@ def fire_in_the_hole(
         subset=geo_column_id, keep="last"
     )  # Remove duplicates, because there could be repeated addresses
     if save:
+        if len(df[geo_column_id].unique()) != len(final_df[geo_column_id].unique()):
+            os.system(
+                'echo "%s final geoid column count not the same: %s/%s\n" >> fill.log'
+                % (
+                    county,
+                    len(df[geo_column_id].unique()),
+                    len(final_df[geo_column_id].unique()),
+                )
+            )
+        if len(df[df["address"].isnull()]) <= len(
+            final_df[final_df["address"].isnull()]
+        ):
+            os.system(
+                'echo "%s final address count not less than or equal to original same: %s/%s\n" >> fill.log'
+                % (
+                    county,
+                    len(df[df["address"].isnull()]),
+                    len(final_df[final_df["address"].isnull()]),
+                )
+            )
+
         final_df.to_csv(file, index=False)
+        # final_df.to_csv(
+        #     os.path.join(file.parents[0], "test_" + file.name), index=False
+        # )  # for testing
     print(final_df)
     return final_df
 
@@ -150,5 +175,5 @@ if __name__ == "__main__":
     for file in pbar:
         pbar.set_description("Processing: %s" % file.name)
         county = file.name.split(".")[0]
-        fire_in_the_hole(file, county, pbar=pbar, save=False)
+        fire_in_the_hole(file, county, pbar=pbar, num_samples=1, save=True)
         # time.sleep(0.1)
