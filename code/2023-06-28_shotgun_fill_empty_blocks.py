@@ -175,7 +175,7 @@ if __name__ == "__main__":
     for file in pbar:
         pbar.set_description("Processing: %s" % file.name)
         county = file.name.split(".")[0]
-        if county[:2] != "13":  # custom search
+        if county[:2] != "01":  # custom search
             continue
-        fire_in_the_hole(file, county, pbar=pbar, num_samples=1, save=True)
+        fire_in_the_hole(file, county, pbar=pbar, num_samples=3, save=True)
         # time.sleep(0.1)
