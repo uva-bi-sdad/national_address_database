@@ -65,7 +65,7 @@ def renew_connection():
 
 
 def fire_in_the_hole(
-    file, county, pbar=None, geo_column_id="GEOID20", num_samples=1, save=False
+    file, geoid, pbar=None, geo_column_id="GEOID20", num_samples=1, save=False
 ):
     df = pd.read_csv(file, dtype={geo_column_id: object})
     # We are only interested in reverse-geocoding addresses that are empty
@@ -134,12 +134,16 @@ def fire_in_the_hole(
 
     rgeo_df["address"] = addresses
     final_df = pd.concat([df, rgeo_df])
-    final_df = final_df.sort_values(by=geo_column_id)  # sort by geoid
+    edf = final_df[final_df["address"].isnull()]
+    final_df = final_df[final_df["address"].notnull()]
     final_df = final_df.drop_duplicates(
         subset=geo_column_id, keep="last"
     )  # Remove duplicates, because there could be repeated addresses
+    final_df = pd.concat([final_df, edf])
+    final_df = final_df.sort_values(by=geo_column_id)  # sort by geoid
     if save:
         if len(df[geo_column_id].unique()) != len(final_df[geo_column_id].unique()):
+            pbar.set_description("Final geoid count not the same")
             os.system(
                 'echo "%s final geoid column count not the same: %s/%s\n" >> fill.log'
                 % (
@@ -151,8 +155,11 @@ def fire_in_the_hole(
         if len(df[df["address"].isnull()]) <= len(
             final_df[final_df["address"].isnull()]
         ):
+            pbar.set_description(
+                "Final address count not less than or equal to original"
+            )
             os.system(
-                'echo "%s final address count not less than or equal to original same: %s/%s\n" >> fill.log'
+                'echo "%s final address count not less than or equal to original: %s/%s\n" >> fill.log'
                 % (
                     county,
                     len(df[df["address"].isnull()]),
@@ -175,7 +182,54 @@ if __name__ == "__main__":
     for file in pbar:
         pbar.set_description("Processing: %s" % file.name)
         county = file.name.split(".")[0]
-        if not county[:2] in ["01", "13"]:  # custom search
+        geo = file.name.split(".")[0][:12]
+        if not geo in [
+            "010010205021",
+            "010010209021",
+            "010010207002",
+            "010010208031",
+            "010010205032",
+            "010010208012",
+            "010010205031",
+            "010010211002",
+            "010010210002",
+            "010010208034",
+            "010010204004",
+            "010010209011",
+            "010010208041",
+            "010010205033",
+            "010010204002",
+            "010010208042",
+            "010010208051",
+            "010010211003",
+            "010010207001",
+            "010010208033",
+            "010010201002",
+            "010010210001",
+            "010010203001",
+            "010010201001",
+            "010010211001",
+            "010010202001",
+            "010010204003",
+            "010010203002",
+            "010010208011",
+            "010010209012",
+            "010010205022",
+            "010010208013",
+            "010010205012",
+            "010010206002",
+            "010010204001",
+            "010010208052",
+            "010010206001",
+            "010010210003",
+            "010010205011",
+            "010010207003",
+            "010010211004",
+            "010010208032",
+            "010010206003",
+            "010010209022",
+            "010010202002",
+        ]:  # custom search
             continue
-        fire_in_the_hole(file, county, pbar=pbar, num_samples=3, save=True)
+        fire_in_the_hole(file, county, pbar=pbar, num_samples=50, save=True)
         # time.sleep(0.1)
