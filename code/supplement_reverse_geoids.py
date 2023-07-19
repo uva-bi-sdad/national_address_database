@@ -119,7 +119,8 @@ def randomly_query_geoids(geoids, num_samples=1, batch_size=500, save=False):
     rgeo_df["address"] = addresses
 
     # Read the existing data
-    for county in [s[:2] for s in geoids]:
+    cpbar = tqdm([s[:5] for s in geoids])
+    for county in cpbar:
         # For each county division, save back in to the file
 
         p = pathlib.Path("../data/address/{county}.csv.xz".format(county=county))
@@ -130,17 +131,34 @@ def randomly_query_geoids(geoids, num_samples=1, batch_size=500, save=False):
         final_df = pd.concat([df, pdf])
 
         # Get the empty data frame (need to keep because even if address is null, we want to keep null addresses if the geoid is not fiilled)
-        edf = final_df[final_df["address"].isnull()]
-        final_df = final_df[final_df["address"].notnull()]
         final_df = final_df.drop_duplicates(
-            subset="GEOID20", keep="last"
+            subset=["address", "GEOID20"], keep="last"
         )  # Remove duplicates, because there could be repeated addresses
 
-        # Retain exsting empties, in case not covered
-        final_df = pd.concat([final_df, edf])
         final_df = final_df.sort_values(by="GEOID20")  # sort by geoid, to look good
 
         if save:
+            assert len(final_df["GEOID20"].unique()) >= len(
+                df["GEOID20"].unique()
+            ), print(
+                "Final unique geoid length (%s) is less than original (%s)"
+                % (len(final_df["GEOID20"].unique()), len(df["GEOID20"].unique()))
+            )
+            assert len(final_df["address"].unique()) >= len(
+                df["address"].unique()
+            ), print(
+                "Final unique address length (%s) is not greater than original (%s)"
+                % (len(final_df["address"].unique()), len(df["address"].unique()))
+            )
+
+            cpbar.set_description(
+                "Updating: %s, old size: %s, new size: %s"
+                % (
+                    p.resolve(),
+                    len(final_df["address"].unique()),
+                    len(df["address"].unique()),
+                )
+            )
             final_df.to_csv(p.resolve(), index=False)
 
     return final_df
@@ -150,8 +168,10 @@ if __name__ == "__main__":
     # shape_file_url = "https://www2.census.gov/geo/tiger/TIGER2020PL/LAYER/TABBLOCK/2020/tl_2020_{county}_tabblock20.zip"
 
     # Manually look up the ones that are missing
-    with open("../../data/missing_census_block_grps.txt", "r") as f:
-        geoids = eval(f.read())
+    with open(
+        "../../sdc.broadband.broadbandnow/data/missing_census_block_grps.txt", "r"
+    ) as f:
+        geoids = sorted(eval(f.read()))
 
     randomly_query_geoids(geoids, num_samples=10, save=True)
     # time.sleep(0.1)
