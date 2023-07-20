@@ -20,6 +20,8 @@ Iterate across each county, use reverse geocoding on 10 random location per cens
 Then, remove duplicates and save back to the original data frame. Worry about verifying the freshness of the address later
 """
 
+last_changed_time = time.time()
+
 
 def get_lat_longs(gdf, geoid, point_per_block=10):
     aoi = gdf[gdf["GEOID20"].str[: len(geoid)] == geoid]
@@ -59,38 +61,38 @@ def reverse_geocoding(lat, lon):
 
 # signal TOR for a new connection
 def renew_connection():
-    with Controller.from_port(port=9051) as controller:
-        controller.authenticate()
-        controller.signal(Signal.NEWNYM)
+    global last_changed_time
+    if (time.time() - last_changed_time) > (60 * 5):
+        with Controller.from_port(port=9051) as controller:
+            controller.authenticate()
+            controller.signal(Signal.NEWNYM)
+        last_changed_time = time.time()
+    else:
+        print("Last changed within 5 minutes, skipping...")
 
 
-def randomly_query_geoids(geoids, num_samples=1, batch_size=500, save=False):
+def randomly_query_geoids(geoid, num_samples=1, batch_size=500, pbar=None, save=False):
+    assert pbar is not None
     # Download the shapefiles
     shapefile_url = "../../national_address_database/data/shapefiles/tl_2020_{county}_tabblock20.zip"
 
     dfs = []
-    empty_bar = tqdm(geoids)  # Create the progress bar for the data frame
-    # For the given geoid, generate n numnbner of points, equal to num_samples
-    for geoid in empty_bar:
-        empty_bar.set_description("Extracting lat long for: %s" % geoid)
-        county = geoid[:5]
-        gdf = gpd.read_file(shapefile_url.format(county=county))
-        pdf = gdf[gdf["GEOID20"].str[: len(geoid)] == geoid]
-        pdf = pdf.loc[pdf.index.repeat(num_samples)]
-        pdf = pdf.reset_index(drop=True)
-        pts = get_lat_longs(gdf, geoid, point_per_block=num_samples)
 
-        new_df = pd.DataFrame()
-        new_df["geometry"] = pts
-        new_df["longitude"] = new_df["geometry"].apply(lambda x: x.x)
-        new_df["latitude"] = new_df["geometry"].apply(lambda x: x.y)
-        new_df["GEOID20"] = geoid
+    pbar.set_description("Extracting lat long for: %s" % geoid)
+    county = geoid[:5]
+    gdf = gpd.read_file(shapefile_url.format(county=county))
+    pdf = gdf[gdf["GEOID20"].str[: len(geoid)] == geoid]
+    pdf = pdf.loc[pdf.index.repeat(num_samples)]
+    pdf = pdf.reset_index(drop=True)
+    pts = get_lat_longs(gdf, geoid, point_per_block=num_samples)
 
-        dfs.append(new_df)
-    rgeo_df = pd.concat(dfs)
+    new_df = pd.DataFrame()
+    new_df["geometry"] = pts
+    new_df["longitude"] = new_df["geometry"].apply(lambda x: x.x)
+    new_df["latitude"] = new_df["geometry"].apply(lambda x: x.y)
+    new_df["GEOID20"] = geoid
 
-    # rgeo_df = rgeo_df.head(11)  # for quicker testing
-    # Set a batch size limit of 2000
+    rgeo_df = new_df
     batch_size = 500
     addresses = []
     batch_bar = tqdm(range(int(math.ceil(len(rgeo_df) / batch_size))))
@@ -112,54 +114,51 @@ def randomly_query_geoids(geoids, num_samples=1, batch_size=500, save=False):
         )
 
         batch_bar.set_description("Changing ip address")
-        # renew_connection()
-    print("length of addresses: %s" % len(addresses))
-    print("length of data frame: %s" % len(rgeo_df))
+        renew_connection()
+
+    pbar.set_description("length of addresses: %s" % len(addresses))
+    pbar.set_description("length of data frame: %s" % len(rgeo_df))
 
     rgeo_df["address"] = addresses
 
     # Read the existing data
-    cpbar = tqdm([s[:5] for s in geoids])
-    for county in cpbar:
-        # For each county division, save back in to the file
+    county = geoid[:5]
 
-        p = pathlib.Path("../data/address/{county}.csv.xz".format(county=county))
-        df = pd.read_csv(p.resolve(), dtype={"GEOID20": object})
+    # For each county division, save back in to the file
 
-        pdf = rgeo_df[rgeo_df["GEOID20"].str[:5] == county]
-        # Combine the two data frames
-        final_df = pd.concat([df, pdf])
+    p = pathlib.Path("../data/address/{county}.csv.xz".format(county=county))
+    df = pd.read_csv(p.resolve(), dtype={"GEOID20": object})
 
-        # Get the empty data frame (need to keep because even if address is null, we want to keep null addresses if the geoid is not fiilled)
-        final_df = final_df.drop_duplicates(
-            subset=["address", "GEOID20"], keep="last"
-        )  # Remove duplicates, because there could be repeated addresses
+    pdf = rgeo_df[rgeo_df["GEOID20"].str[:5] == county]
+    # Combine the two data frames
+    final_df = pd.concat([df, pdf])
 
-        final_df = final_df.sort_values(by="GEOID20")  # sort by geoid, to look good
+    # Get the empty data frame (need to keep because even if address is null, we want to keep null addresses if the geoid is not fiilled)
+    final_df = final_df.drop_duplicates(
+        subset=["address", "GEOID20"], keep="last"
+    )  # Remove duplicates, because there could be repeated addresses
 
-        if save:
-            assert len(final_df["GEOID20"].unique()) >= len(
-                df["GEOID20"].unique()
-            ), print(
-                "Final unique geoid length (%s) is less than original (%s)"
-                % (len(final_df["GEOID20"].unique()), len(df["GEOID20"].unique()))
+    final_df = final_df.sort_values(by="GEOID20")  # sort by geoid, to look good
+
+    if save:
+        assert len(final_df["GEOID20"].unique()) >= len(df["GEOID20"].unique()), print(
+            "Final unique geoid length (%s) is less than original (%s)"
+            % (len(final_df["GEOID20"].unique()), len(df["GEOID20"].unique()))
+        )
+        assert len(final_df["address"].unique()) >= len(df["address"].unique()), print(
+            "Final unique address length (%s) is not greater than original (%s)"
+            % (len(final_df["address"].unique()), len(df["address"].unique()))
+        )
+
+        pbar.set_description(
+            "Updating: %s, old size: %s, new size: %s"
+            % (
+                p.resolve(),
+                len(final_df["address"].unique()),
+                len(df["address"].unique()),
             )
-            assert len(final_df["address"].unique()) >= len(
-                df["address"].unique()
-            ), print(
-                "Final unique address length (%s) is not greater than original (%s)"
-                % (len(final_df["address"].unique()), len(df["address"].unique()))
-            )
-
-            cpbar.set_description(
-                "Updating: %s, old size: %s, new size: %s"
-                % (
-                    p.resolve(),
-                    len(final_df["address"].unique()),
-                    len(df["address"].unique()),
-                )
-            )
-            final_df.to_csv(p.resolve(), index=False)
+        )
+        final_df.to_csv(p.resolve(), index=False)
 
     return final_df
 
@@ -173,5 +172,7 @@ if __name__ == "__main__":
     ) as f:
         geoids = sorted(eval(f.read()))
 
-    randomly_query_geoids(geoids, num_samples=10, save=True)
+    pbar = tqdm(geoids[138:])
+    for geoid in pbar:
+        randomly_query_geoids(geoid, num_samples=10, save=True, pbar=pbar)
     # time.sleep(0.1)
