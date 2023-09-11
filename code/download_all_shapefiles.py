@@ -17,9 +17,7 @@ def handler(signum, frame):
 
 
 def main():
-    assert os.path.isdir(
-        "../data/shapefiles/"
-    ), "No directory found at ../data/shapefiles/"
+    os.system("mkdir -p ../data/shapefiles/")
 
     # identify all files to download
     r = requests.get(
@@ -33,12 +31,14 @@ def main():
             counties.append(a["href"])
 
     for county in tqdm(counties):
+        if len(county.split("_")[2]) != 5:  # only donwload county files
+            continue
         os.system(
             "wget -nc -P ../data/shapefiles/ https://www2.census.gov/geo/tiger/TIGER2020PL/LAYER/TABBLOCK/2020/%s"
             % county
         )
         filepath = os.path.join("../data/shapefiles", county)
-        assert os.path.isfile(filepath), filepath
+        assert os.path.isfile(filepath), filepath + " was not exported"
 
 
 if __name__ == "__main__":
